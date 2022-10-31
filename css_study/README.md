@@ -23,6 +23,6 @@
         </ol>
       </section>
 ```
-
-[Github.io](https://kdh5107.github.io/GAME_PGM/css_study/)
-[Netlify](https://css-study.netlify.app/)
+github와 netlify를 통한 호스팅 : 
+[github.io](https://kdh5107.github.io/GAME_PGM/css_study/) , 
+[netlify](https://css-study.netlify.app/)
