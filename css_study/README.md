@@ -1,7 +1,7 @@
 ## CSS Framework
 ### Bluma, BootStrap, Materialize
 
-+ Bluma\n
++ Bluma  
 단락마다 box로 감싸게 함
 ```
       <section id="about" class="box">
@@ -25,7 +25,7 @@
       </section>
 ```
 
-+ BootStrap\n
++ BootStrap  
 배경색을 추가
 ```
       <section id="my_info" class="p-3 mb-2 bg-info text-white">
@@ -36,7 +36,7 @@
         </table>
       </section>
 ```
-+ Materialize\n
++ Materialize  
 li 태그마다 색깔 부여
 ```
         <ol>
