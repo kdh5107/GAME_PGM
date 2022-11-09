@@ -1,29 +1,9 @@
 ## JavaScript 차트 만드는 법 연습하기
-### [Bluma](https://bulma.io/), [BootStrap](https://getbootstrap.com/), [Materialize](https://materializecss.com/)
+### [chart.js](https://www.chartjs.org/), [d3](https://d3js.org/), [amcharts](https://www.amcharts.com/)
 
-+ Bluma  
-단락마다 box로 감싸게 함
-```
-      <section id="about" class="box">
-        <h2>About</h2>
-        <p>
-          ...
-        </p>
-      </section>
++ chart.js 
+![image](https://user-images.githubusercontent.com/35947710/200786000-06ca3a2f-5214-4dcd-90d2-0984fbb3033b.png)
 
-      <section id="contact" class="box">
-        <h2>Contact</h2>
-        <ul>
-          ...
-      </section>
-
-      <section id="skill" class="box">
-        <h2>Skills</h2>
-        <ol>
-          ...
-        </ol>
-      </section>
-```
 
 + BootStrap  
 배경색을 추가
