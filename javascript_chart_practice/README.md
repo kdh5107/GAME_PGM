@@ -13,10 +13,10 @@
 
 ---
 + amcharts  
+![image](https://user-images.githubusercontent.com/35947710/200786609-b35aea5b-e109-46dd-a369-68ed633e27b1.png)
+
 인구분포도를 stacked bar로 나타냄
 
-
-![image](https://user-images.githubusercontent.com/35947710/200786609-b35aea5b-e109-46dd-a369-68ed633e27b1.png)
 
 ---
 netlify를 통한 호스팅 : 
