@@ -19,6 +19,5 @@
 
 
 
-github와 netlify를 통한 호스팅 : 
-[github.io](https://kdh5107.github.io/GAME_PGM/css_study/) , 
-[netlify](https://css-study.netlify.app/)
+netlify를 통한 호스팅 : 
+[netlify](https://chartpractice.netlify.app)
