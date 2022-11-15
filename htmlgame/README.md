@@ -1,1 +1,1 @@
-(게임하러가기)[avoidthewall.netlify.app]
+[게임하러가기](avoidthewall.netlify.app)
