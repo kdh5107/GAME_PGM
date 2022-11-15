@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>벽 피해서 살아남기</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <style>
+      canvas {
+        border: 1px solid #d3d3d3;
+        background-color: #f1f1f1;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="text-align: center; width: 480px" id="main">
+      <!-- 게임 실행 전 메인화면-->
+      <p>장애물 피하기</p>
+      <p>밀려오는 벽을 요리조리 피해보세요</p>
+      <p>난이도 선택</p>
+      <button onclick="easy()">쉬움</button>
+      <button onclick="normal()">보통</button>
+      <button onclick="hard()">어려움</button>
+      <br />
+      <br />
+      <p>네모 크기 조절</p>
+      <button onclick="big()">대</button>
+      <button onclick="middle()">중</button>
+      <button onclick="small()">소</button>
+      <br />
+      <br />
+      <button id="startbtn" onclick="startbtn()">게임 시작</button>
+    </div>
+    <div style="text-align: center; width: 480px" id="ingame">
+      <!-- 게임 실행 중 화면-->
+      <button onclick="speedUp()">속도 증가(a)</button>
+      <!-- 네모 이동속도 변경-->
+      <button onclick="speedDown()">속도 감소(s)</button>
+      <h4 id="speed">speed</h4>
+      <input type="reset" value="재시작" onclick="restart()" />
+      <!-- 네모 이동속도 변경-->
+      <br />
+      <br />
+      <canvas id="myChart" style="width: 100%; max-width: 600px"></canvas>
+      <a href="" download="my_painting.png">다운로드</a>
+    </div>
+
+    <script>
+      window.onload = () => {
+        // 페이지 불러오고 인게임화면은 가려놓음
+        const ingame = document.getElementById('ingame');
+        ingame.style.visibility = 'hidden';
+      };
+      let myGamePiece;
+      let myObstacles = [];
+      let myScore;
+      let moveSpeed = 1; // 네모 이동속도, 벽 이동속도, 벽 만들어지는 간격, 최대점수 저장용 변수, 어느방향키 입력하는지 flag, 결과 리스트용 리스트
+      let wallspeed = 1;
+      let wallinterval = 150;
+      let max = 0;
+      let flag;
+      let mySound;
+      let resultArray = [];
+      let backImg = new Image(); // 배경화면 이미지
+      backImg.src =
+        'https://img1.daumcdn.net/thumb/R1280x0.fjpg/?fname=http://t1.daumcdn.net/brunch/service/user/8LOK/image/Kx3PTA8nv2pHelBbVxvavOi0lK0.JPG';
+
+      function startGame() {
+        myScore = new component('25px', 'Consolas', 'black', 320, 40, 'text');
+        myFlash = new component('20px', 'Consolas', 'black', 200, 40, 'text');
+        // mySound = new sound('/effectsound.mp3');
+        document.getElementById('speed').innerHTML = moveSpeed; //이동속도 나오도록 함.
+        myGameArea.start();
+      }
+
+      let myGameArea = {
+        canvas: document.createElement('canvas'),
+        start: function () {
+          this.canvas.width = 480;
+          this.canvas.height = 270;
+          this.context = this.canvas.getContext('2d');
+          document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+          this.frameNo = 0;
+          this.interval = setInterval(updateGameArea, 20);
+        },
+        clear: function () {
+          this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        },
+        stop: function () {
+          // 끝났을 때 종료화면 등 만들기
+          clearInterval(this.interval);
+          const canvas = document.querySelector('canvas');
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = 'rgba(130, 130, 130, 0.5)';
+          ctx.fillRect(0, 0, 480, 270);
+          const resultText = canvas.getContext('2d');
+          resultText.font = '25px Arial';
+          resultText.fillStyle = 'black';
+          resultText.textAlign = 'center';
+          resultText.fillText(
+            `당신의 점수: ${this.frameNo}`,
+            canvas.width / 2,
+            canvas.height / 2
+          );
+          if (max < this.frameNo) {
+            console.log(this.frameNo);
+            max = this.frameNo;
+            let a = prompt('최고기록 달성!, 당신의 이름을 입력해주세요.'); // 최고기록 달성하면 prompt로 이름 받아옴
+            const p = document.getElementById('result');
+            console.log(p);
+            let scoreman = { name: a, score: max };
+            resultArray.unshift(scoreman);
+            console.log(resultArray); // unshift를 통해 점수가 높은 순으로 나열되게 구현
+            new Chart('myChart', {
+              // 결과를 차트로 표현
+              type: 'bar',
+              data: {
+                labels: resultArray.map((x) => x.name),
+                datasets: [
+                  {
+                    backgroundColor: '#00aba9',
+                    data: resultArray.map((x) => x.score),
+                  },
+                ],
+              },
+              options: {
+                legend: { display: false },
+                title: {
+                  display: true,
+                  text: '명예의 전당',
+                },
+              },
+            });
+          }
+        },
+      };
+
+      function component(width, height, color, x, y, type, skill) {
+        this.type = type;
+        this.width = width;
+        this.height = height;
+        this.speedX = 0;
+        this.speedY = 0;
+        this.x = x;
+        this.y = y;
+        this.skill = 3; // 스킬 사용 횟수
+        this.update = function () {
+          ctx = myGameArea.context;
+          if (this.type == 'text') {
+            ctx.font = this.width + ' ' + this.height;
+            ctx.fillStyle = color;
+            ctx.fillText(this.text, this.x, this.y);
+          } else {
+            ctx.fillStyle = color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+          }
+        };
+        this.newPos = function () {
+          //위치 변경
+          this.x += this.speedX;
+          this.y += this.speedY;
+        };
+        this.crashWith = function (otherobj) {
+          let myleft = this.x;
+          let myright = this.x + this.width;
+          let mytop = this.y;
+          let mybottom = this.y + this.height;
+          let otherleft = otherobj.x;
+          let otherright = otherobj.x + otherobj.width;
+          let othertop = otherobj.y;
+          let otherbottom = otherobj.y + otherobj.height;
+          let crash = true;
+          if (
+            mybottom < othertop ||
+            mytop > otherbottom ||
+            myright < otherleft ||
+            myleft > otherright
+          ) {
+            crash = false;
+          }
+          return crash;
+        };
+      }
+
+      function updateGameArea() {
+        let x, height, gap, minHeight, maxHeight, minGap, maxGap;
+        for (i = 0; i < myObstacles.length; i += 1) {
+          if (myGamePiece.crashWith(myObstacles[i])) {
+            //부딛히면 stop() 실행
+            myGameArea.stop();
+            return;
+          }
+        }
+        myGameArea.clear();
+        myGameArea.frameNo += 1;
+        if (myGameArea.frameNo == 1 || everyinterval(wallinterval)) {
+          x = myGameArea.canvas.width;
+          minHeight = 20;
+          maxHeight = 200;
+          height = Math.floor(
+            Math.random() * (maxHeight - minHeight + 1) + minHeight
+          );
+          minGap = 50;
+          maxGap = 200;
+          gap = Math.floor(Math.random() * (maxGap - minGap + 1) + minGap);
+          myObstacles.push(new component(10, height, 'purple', x, 0)); //벽 색 수정
+          myObstacles.push(
+            new component(10, x - height - gap, 'purple', x, height + gap) //벽 색 수정
+          );
+        }
+        myGameArea.context.drawImage(backImg, 0, 0, 480, 270);
+        for (i = 0; i < myObstacles.length; i += 1) {
+          myObstacles[i].speedX = -wallspeed;
+          myObstacles[i].newPos();
+          myObstacles[i].update();
+        }
+        myScore.text = 'SCORE: ' + myGameArea.frameNo;
+        myScore.update();
+        myFlash.text = 'Flash: ' + myGamePiece.skill; // 점멸 사용가능 횟수
+        myFlash.update();
+        myGamePiece.newPos();
+        myGamePiece.update();
+      }
+
+      function everyinterval(n) {
+        if ((myGameArea.frameNo / n) % 1 == 0) {
+          return true;
+        }
+        return false;
+      }
+
+      function moveup() {
+        myGamePiece.speedY = -moveSpeed;
+      }
+
+      function movedown() {
+        myGamePiece.speedY = moveSpeed;
+      }
+
+      function moveleft() {
+        myGamePiece.speedX = -moveSpeed;
+      }
+
+      function moveright() {
+        myGamePiece.speedX = moveSpeed;
+      }
+
+      function clearmove() {
+        myGamePiece.speedX = 0;
+        myGamePiece.speedY = 0;
+      }
+      let flash;
+      const keydownhandler = (event) => {
+        // 키보드 클릭으로 네모 움직이게 조절
+        if (event.keyCode === 37) {
+          moveleft();
+          flash = 1;
+        } else if (event.keyCode === 38) {
+          moveup();
+          flash = 2;
+        } else if (event.keyCode === 39) {
+          moveright();
+          flash = 3;
+        } else if (event.keyCode === 40) {
+          movedown();
+          flash = 4;
+        }
+      };
+      const keyuphandler = (event) => {
+        // 키보드 클릭으로 네모 움직이게 조절
+        clearmove();
+      };
+      const setFlash = () => {
+        // 스킬 사용 가능하게 만듦
+        if (myGamePiece.skill > 0) {
+          if (event.keyCode === 70) {
+            if (flash === 1) {
+              console.log(event.keyCode);
+              myGamePiece.x -= 60;
+              myGamePiece.skill--;
+            }
+            if (flash === 2) {
+              console.log(event.keyCode);
+              myGamePiece.y -= 60;
+              myGamePiece.skill--;
+            }
+            if (flash === 3) {
+              console.log(event.keyCode);
+              myGamePiece.x += 60;
+              myGamePiece.skill--;
+            }
+            if (flash === 4) {
+              console.log(event.keyCode);
+              myGamePiece.y += 60;
+              myGamePiece.skill--;
+            }
+          }
+        }
+      };
+      const keydown_speed = (event) => {
+        // 키보드 클릭 속도 조정 가능하게 변경
+        if (event.keyCode === 65) {
+          if (moveSpeed < 5) {
+            moveSpeed++;
+            document.getElementById('speed').innerHTML = moveSpeed;
+            console.log(moveSpeed);
+          }
+        } else if (event.keyCode === 83) {
+          if (moveSpeed > 1) {
+            moveSpeed--;
+            document.getElementById('speed').innerHTML = moveSpeed;
+            console.log(moveSpeed);
+          }
+        }
+      };
+      document.addEventListener('keydown', keydownhandler); // 키보드 클릭으로 네모 움직이게 조절
+      document.addEventListener('keyup', keyuphandler);
+      document.addEventListener('keydown', setFlash); // 점멸 사용가능하게 만듦
+      document.addEventListener('keydown', keydown_speed);
+      const speedUp = () => {
+        // 네모 이동속도 변경
+        if (moveSpeed < 5) {
+          moveSpeed++;
+          document.getElementById('speed').innerHTML = moveSpeed;
+          // console.log(moveSpeed);
+        }
+      };
+      const speedDown = () => {
+        // 네모 이동속도 변경
+        if (moveSpeed > 1) {
+          moveSpeed--;
+          document.getElementById('speed').innerHTML = moveSpeed;
+          // console.log(moveSpeed);
+        }
+      };
+
+      const startbtn = () => {
+        //메인화면 관련 동작하게 만듦
+        let mainDiv = document.getElementById('main');
+        let speedUpBtn = document.createElement('button');
+        const ingame = document.getElementById('ingame');
+        ingame.style.visibility = 'visible';
+        mainDiv.remove();
+        startGame();
+      };
+      const easy = () => {
+        //난이도 조절
+        wallspeed = 1;
+        wallinterval = 150;
+        // console.log(wallspeed);
+      };
+      const normal = () => {
+        //난이도 조절
+        wallspeed = 2;
+        wallinterval = 100;
+        // console.log(wallspeed);
+      };
+      const hard = () => {
+        //난이도 조절
+        wallspeed = 6;
+        wallinterval = 30;
+        moveSpeed = 3;
+        // console.log(wallspeed);
+      };
+      //네모 크기 조절
+      const big = () => {
+        myGamePiece = new component(30, 30, 'red', 10, 120);
+        flag = 0;
+      };
+      const middle = () => {
+        myGamePiece = new component(22, 22, 'red', 10, 120);
+        flag = 1;
+      };
+      const small = () => {
+        myGamePiece = new component(15, 15, 'red', 10, 120);
+        flag = 2;
+      };
+
+      const restart = () => {
+        // 재시작 버튼 눌렀을 때
+        myGamePiece = 0;
+        myObstacles = [];
+        myScore = 0;
+        if (wallspeed === 1) {
+          wallinterval = 150;
+          moveSpeed = 1;
+        } else if (wallspeed === 2) {
+          wallinterval = 100;
+          moveSpeed = 1;
+        } else {
+          wallinterval = 30;
+          moveSpeed = 3;
+        }
+
+        clearInterval(myGameArea.interval); // 공 크기 선택에 따라 재시작 했을때 공 크기가 유지되어야 해서 변수 지정함
+        if (flag === 0) {
+          myGamePiece = new component(30, 30, 'red', 10, 120);
+        } else if (flag === 1) {
+          myGamePiece = new component(22, 22, 'red', 10, 120);
+        } else {
+          myGamePiece = new component(15, 15, 'red', 10, 120);
+        }
+        startGame();
+      };
+      document // 차트 다운로드 기능
+        .querySelector('a')
+        .addEventListener(
+          'click',
+          (event) =>
+            (event.target.href = document.getElementById('myChart').toDataURL())
+        );
+    </script>
+  </body>
+</html>
