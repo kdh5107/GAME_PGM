@@ -1,4 +1,4 @@
-##canvas 게임 업그레이드 해보기
+## canvas 게임 업그레이드 해보기
 
 [원본코드 : w3schools](https://www.w3schools.com/graphics/game_score.asp)  
 
